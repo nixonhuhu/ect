@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>시내출장명령 취소/변경신청서</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-size: 14px;
+            color: #333;
+        }
+        .container {
+            width: 800px;
+            margin: 0 auto;
+            border: 1px solid #000;
+            padding: 40px;
+        }
+        h2 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+        .notice {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        table.form-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        table.form-table th, table.form-table td {
+            border: 1px solid #333;
+            padding: 10px;
+        }
+        table.form-table th {
+            background-color: #f9f9f9;
+            width: 130px;
+        }
+        table.form-table td {
+            text-align: left;
+        }
+        
+        /* 추가된 부분: ( ) 시간 칸의 너비 고정 및 정렬 */
+        .time-col {
+            width: 80px;
+            text-align: center !important;
+            white-space: nowrap;
+        }
+
+        /* 업무차량운행 + 현지출퇴근 셀 */
+        .option-col {
+            width: 170px;
+            text-align: center !important;
+            white-space: nowrap;
+            font-size: 13px;
+        }
+        .local-check {
+            margin-top: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+            padding-left: 18px;
+        }
+        .local-check label { cursor: pointer; }
+
+        /* 외부기관 참석 여부 셀 */
+        .attend-col {
+            width: 170px;
+            text-align: center !important;
+            white-space: nowrap;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .attend-radio {
+            margin-top: 6px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+        .attend-radio label { cursor: pointer; }
+
+        .input-text {
+            width: 98%;
+            padding: 4px;
+            border: 1px solid #ccc;
+        }
+        .date-input {
+            width: 110px;
+            padding: 2px;
+        }
+        
+        /* 비활성화된 입력창 스타일 */
+        .input-readonly {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 2px 4px;
+            text-align: center;
+            color: #555;
+        }
+        .date-txt { width: 90px; }
+        .time-txt { width: 50px; }
+
+        /* 시, 분 선택 드롭다운 스타일 */
+        .time-select {
+            padding: 2px;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 4px 10px;
+            border: 1px solid #aaa;
+            background-color: #fff;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .btn-primary {
+            background-color: #0056b3;
+            color: #fff;
+            border: none;
+            padding: 6px 15px;
+        }
+        .footer-info {
+            margin-top: 30px;
+            line-height: 2;
+        }
+        .approval-line {
+            text-align: right;
+            margin-top: 20px;
+            margin-bottom: 50px;
+        }
+        .title-bottom {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 10px;
+            margin-top: 50px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 10;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            background: #fff;
+            border: 1px solid #777;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 11;
+        }
+        .modal-header {
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        .modal-close {
+            cursor: pointer;
+            font-size: 18px;
+            color: #888;
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        table.modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table.modal-table th, table.modal-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        table.modal-table th {
+            background-color: #f1f1f1;
+        }
+        .modal-footer {
+            text-align: center;
+            padding-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>시내출장명령 취소/변경신청서( )</h2>
+    <div class="notice">본인은 아래와 같이 휴가코저 하오니 허가하여 주시기 바랍니다.</div>
+    
+    <table class="form-table">
+        <tr>
+            <th>유 형</th>
+            <!-- 나머지 행과 열을 맞추기 위해 colspan="3" -->
+            <td colspan="3">
+                <label><input type="radio" name="type" value="change" checked> 변경</label>
+                <label><input type="radio" name="type" value="cancel"> 취소</label>
+            </td>
+        </tr>
+        <tr>
+            <th>기존 출장 선택</th>
+            <td colspan="2" style="text-align: center;">
+                일자: <input type="text" id="old-date" class="input-readonly date-txt" disabled placeholder="yy-mm-dd"> 
+                출발: <input type="text" id="old-start" class="input-readonly time-txt" disabled placeholder="hh:mm"> ~ 
+                도착: <input type="text" id="old-end" class="input-readonly time-txt" disabled placeholder="hh:mm"> 
+                <button type="button" class="btn" id="btn-select-trip">출장선택</button>
+            </td>
+            <!-- 우측 ( ) 시간 표시 -->
+            <td class="time-col">
+                ( <span id="old-duration">&nbsp;&nbsp;&nbsp;</span> ) 시간
+            </td>
+        </tr>
+        <tr>
+            <th>출장 일시</th>
+            <td style="text-align: center;">
+                <div>일자: <input type="date" class="date-input"></div>
+                <div style="margin-top: 6px;">
+                    출발: 
+                    <select class="time-select hour-select" id="new-start-hour"></select>시 
+                    <select class="time-select min-select" id="new-start-min"></select>분 
+                    ~ 
+                    도착: 
+                    <select class="time-select hour-select" id="new-end-hour"></select>시 
+                    <select class="time-select min-select" id="new-end-min"></select>분
+                    &nbsp; ( <span id="new-duration">&nbsp;&nbsp;&nbsp;</span> ) 시간
+                </div>
+            </td>
+            <!-- 가운데: 업무차량운행 여부 + 현지 출/퇴근 -->
+            <td class="option-col">
+                업무차량운행 (
+                <select class="time-select" id="car-use">
+                    <option value="X" selected>X</option>
+                    <option value="O">O</option>
+                </select>
+                )
+                <div class="local-check">
+                    <label><input type="checkbox" id="local-start"> 현지출근</label>
+                    <label><input type="checkbox" id="local-end"> 현지퇴근</label>
+                </div>
+            </td>
+            <!-- 오른쪽: 외부기관 교육/세미나/포럼 등 참석 여부 -->
+            <td class="attend-col">
+                외부기관 교육, 세미나, 포럼<br>등 참석 여부
+                <div class="attend-radio">
+                    <label><input type="radio" name="attend" value="yes"> 여</label>
+                    <label><input type="radio" name="attend" value="no" checked> 부</label>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th>목 적</th>
+            <td colspan="3"><input type="text" class="input-text"></td>
+        </tr>
+        <tr>
+            <th>행선지</th>
+            <td colspan="3"><input type="text" class="input-text"></td>
+        </tr>
+        <tr>
+            <th>문서 제목</th>
+            <td colspan="3"><input type="text" class="input-text"></td>
+        </tr>
+    </table>
+
+    <div style="text-align: right; margin-bottom: 10px;">2026.08.04</div>
+
+    <div class="footer-info">
+        <div>부 서 : 정보자원개발팀</div>
+        <div>성 명 : <button class="btn">선택</button></div>
+        <div>기안자 :</div>
+    </div>
+
+    <div class="approval-line">
+        확 인 자 : 
+    </div>
+
+    <div class="title-bottom">
+        한 국 영 상 자 료 원 장 귀 하
+    </div>
+</div>
+
+<!-- 부재조회 모달 (팝업) -->
+<div class="modal-overlay" id="modal-overlay"></div>
+<div class="modal" id="modal">
+    <div class="modal-header">
+        <span>부재조회</span>
+        <span class="modal-close" id="modal-close-x">✕</span>
+    </div>
+    <div class="modal-body">
+        <table class="modal-table">
+            <thead>
+                <tr>
+                    <th>선택</th>
+                    <th>부재유형</th>
+                    <th>기간</th>
+                    <th>차감일자</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="radio" name="trip-select" id="trip-item" checked></td>
+                    <td>출장</td>
+                    <td>2026.09.02 09:00 ~ 14:00</td>
+                    <td>0시간</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="modal-footer">
+            <button class="btn-primary" id="btn-confirm">확인</button>
+            <button class="btn" id="btn-cancel">취소</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 시, 분 선택 옵션 자동 생성 (00~23시, 00~59분)
+    document.addEventListener("DOMContentLoaded", function() {
+        const hourSelects = document.querySelectorAll('.hour-select');
+        const minSelects = document.querySelectorAll('.min-select');
+
+        hourSelects.forEach(select => {
+            for(let i=0; i<=23; i++) {
+                let val = i.toString().padStart(2, '0');
+                let option = new Option(val, val);
+                if (val === '09') option.selected = true; // 09시 디폴트
+                select.add(option);
+            }
+        });
+
+        minSelects.forEach(select => {
+            for(let i=0; i<=59; i++) {
+                let val = i.toString().padStart(2, '0');
+                let option = new Option(val, val);
+                if (val === '00') option.selected = true; // 00분 디폴트
+                select.add(option);
+            }
+        });
+
+        // === 출장 시간 자동 계산 (점심 12~13시 1시간 차감) ===
+        const nsH = document.getElementById('new-start-hour');
+        const nsM = document.getElementById('new-start-min');
+        const neH = document.getElementById('new-end-hour');
+        const neM = document.getElementById('new-end-min');
+        const newDurationSpan = document.getElementById('new-duration');
+
+        function calcDuration() {
+            const startMin = parseInt(nsH.value, 10) * 60 + parseInt(nsM.value, 10);
+            const endMin   = parseInt(neH.value, 10) * 60 + parseInt(neM.value, 10);
+
+            let diff = endMin - startMin;
+            if (isNaN(diff) || diff <= 0) {
+                newDurationSpan.textContent = '\u00a0\u00a0\u00a0';
+                return;
+            }
+
+            // 점심시간(12:00~13:00)과 겹치는 만큼 차감
+            const lunchStart = 12 * 60;
+            const lunchEnd   = 13 * 60;
+            const overlap = Math.max(0, Math.min(endMin, lunchEnd) - Math.max(startMin, lunchStart));
+            diff -= overlap;
+
+            // 시간 단위로 표시 (딱 떨어지면 정수, 아니면 소수 1자리)
+            const hours = diff / 60;
+            const text = Number.isInteger(hours) ? String(hours) : hours.toFixed(1);
+            newDurationSpan.textContent = ' ' + text + ' ';
+        }
+
+        [nsH, nsM, neH, neM].forEach(el => el.addEventListener('change', calcDuration));
+        calcDuration(); // 초기값 계산
+    });
+
+    const btnSelectTrip = document.getElementById('btn-select-trip');
+    const modal = document.getElementById('modal');
+    const overlay = document.getElementById('modal-overlay');
+    const btnConfirm = document.getElementById('btn-confirm');
+    const btnCancel = document.getElementById('btn-cancel');
+    const btnCloseX = document.getElementById('modal-close-x');
+
+    const oldDateInput = document.getElementById('old-date');
+    const oldStartInput = document.getElementById('old-start');
+    const oldEndInput = document.getElementById('old-end');
+    const oldDurationSpan = document.getElementById('old-duration');
+    const tripItemRadio = document.getElementById('trip-item');
+
+    // 팝업 열기
+    btnSelectTrip.addEventListener('click', () => {
+        modal.style.display = 'block';
+        overlay.style.display = 'block';
+    });
+
+    // 팝업 닫기 함수
+    const closeModal = () => {
+        modal.style.display = 'none';
+        overlay.style.display = 'none';
+    };
+
+    btnCancel.addEventListener('click', closeModal);
+    btnCloseX.addEventListener('click', closeModal);
+    overlay.addEventListener('click', closeModal);
+
+    // 팝업 확인 클릭 시 동작
+    btnConfirm.addEventListener('click', () => {
+        if(tripItemRadio.checked) {
+            // 값 채워넣기
+            oldDateInput.value = '2026.09.02'; 
+            oldStartInput.value = '09:00';
+            oldEndInput.value = '14:00';
+            
+            // 기존 출장 선택 줄의 시간에 4 표시
+            oldDurationSpan.textContent = ' 4 ';
+        }
+        closeModal();
+    });
+</script>
+
+</body>
+</html>
